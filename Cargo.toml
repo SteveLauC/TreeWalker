@@ -1,0 +1,7 @@
+[package]
+name = "tree_walker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+path-absolutize = "3.0.14"
