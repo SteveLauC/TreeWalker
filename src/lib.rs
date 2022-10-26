@@ -87,6 +87,11 @@ impl Iterator for TreeWalker {
     type Item = Result<DirEntry>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // To avoid dead loop
+        if self.fatal_error {
+            return None;
+        }
+
         if let Some(entry) = self.stack.pop() {
             let metadata = match entry.metadata() {
                 Ok(m) => m,
