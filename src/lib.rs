@@ -8,14 +8,11 @@
 /// The traversal is done is `pre-order`.
 
 use std::{
-    env::current_dir,
-    fs::{metadata, read_dir, DirEntry},
+    fs::{metadata, read_dir, DirEntry, canonicalize},
     io::Result,
     os::linux::fs::MetadataExt,
     path::{Path, PathBuf},
 };
-
-use path_absolutize::Absolutize;
 
 #[derive(Default, Debug)]
 pub struct TreeWalker {
@@ -38,19 +35,6 @@ fn cd_to_parent(path: PathBuf) -> PathBuf {
     path
 }
 
-/// Return a clean, absolute path of `path`
-fn absolute_path<P: AsRef<Path>>(path: P) -> PathBuf {
-    // get current working directory, and concatenate it with `path` so that we
-    // can get the full path
-    let mut abs_path = current_dir().expect("can not get CWD");
-    abs_path.push(path.as_ref());
-    // canonicalize `path` to remove extra `/`, `.` and `..`
-    abs_path
-        .absolutize()
-        .expect("can not clear path")
-        .to_path_buf()
-}
-
 impl TreeWalker {
     /// Construct a [`TreeWalker`] instance.
     pub fn new<P: AsRef<Path>>(start: P) -> Result<Self> {
@@ -59,7 +43,7 @@ impl TreeWalker {
         let mut walker = TreeWalker::default();
 
         // Absolutize `start`
-        let start = absolute_path(start);
+        let start = canonicalize(start).unwrap();
         // get start's parent directory
         let parent = cd_to_parent(start);
 
